@@ -3,44 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>OwePay - Debt Tracker</title>
+  <title>OwePay - Debt & Credit Tracker</title>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="OwePay" />
   <meta name="theme-color" content="#0b0f19" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background-color: #0b0f19; color: #f3f4f6; min-height: 100vh; padding-bottom: 90px; }
-    header { background: #111827; padding: 18px 16px; border-bottom: 1px solid #1f2937; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
+    body { background-color: #0b0f19; color: #f3f4f6; min-height: 100vh; padding-bottom: 95px; }
+    header { background: #111827; padding: 14px 16px; border-bottom: 1px solid #1f2937; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
     h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
     .currency-btn { background: #1f2937; color: #9ca3af; border: 1px solid #374151; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-    .currency-btn.active { background: #ef4444; color: #fff; border-color: #ef4444; }
+    .currency-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
     .container { padding: 16px; max-width: 480px; margin: 0 auto; }
-    .stats-card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 18px; margin-bottom: 18px; }
-    .stats-label { color: #9ca3af; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .stats-amount { font-size: 2rem; font-weight: 800; color: #ef4444; margin-bottom: 8px; }
-    .stats-secondary { color: #9ca3af; font-size: 0.85rem; }
+    
+    /* Type Nav Tabs */
+    .nav-tabs { display: flex; background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 4px; margin-bottom: 16px; }
+    .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 9px; font-size: 0.88rem; font-weight: 700; cursor: pointer; background: transparent; color: #9ca3af; transition: all 0.2s ease; }
+    .tab-btn.active-owe { background: #ef4444; color: #fff; }
+    .tab-btn.active-owed { background: #10b981; color: #fff; }
+
+    /* Summary Card */
+    .stats-card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 16px; margin-bottom: 18px; }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .stat-box { background: #1f2937; border-radius: 12px; padding: 12px; }
+    .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; margin-bottom: 4px; }
+    .stat-num-owe { font-size: 1.15rem; font-weight: 800; color: #ef4444; }
+    .stat-num-owed { font-size: 1.15rem; font-weight: 800; color: #10b981; }
+    .net-box { border-top: 1px solid #374151; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #9ca3af; }
+    .net-val { font-weight: 700; font-size: 0.95rem; }
+
+    /* Debt/Credit List Item */
     .debt-item { background: #111827; border: 1px solid #1f2937; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
-    .debt-item.settled { border-color: #059669; opacity: 0.75; }
-    .debt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .debt-item.settled { border-color: #374151; opacity: 0.65; }
+    .debt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
     .debt-name { font-size: 1rem; font-weight: 700; color: #fff; }
     .debt-note { font-size: 0.8rem; color: #9ca3af; margin-top: 2px; }
-    .debt-badge { padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; }
-    .badge-pending { background: rgba(239,68,68,0.15); color: #ef4444; }
-    .badge-settled { background: rgba(16,185,129,0.15); color: #10b981; }
-    .debt-balance { font-size: 1.25rem; font-weight: 700; color: #fff; margin: 6px 0; }
+    .debt-badge { padding: 3px 8px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+    .badge-owe { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .badge-owed { background: rgba(16,185,129,0.15); color: #10b981; }
+    .badge-settled { background: rgba(107,114,128,0.2); color: #9ca3af; }
+    .debt-balance { font-size: 1.25rem; font-weight: 800; margin: 6px 0; }
+    .bal-owe { color: #ef4444; }
+    .bal-owed { color: #10b981; }
+    
     .actions { display: flex; gap: 8px; margin-top: 12px; }
     button.btn { flex: 1; padding: 9px; border-radius: 10px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-    .btn-pay { background: #10b981; color: #fff; }
+    .btn-pay { background: #ef4444; color: #fff; }
+    .btn-collect { background: #10b981; color: #fff; }
     .btn-del { background: #1f2937; color: #ef4444; border: 1px solid #374151 !important; flex: 0 0 44px; }
-    .fab { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 440px; background: #ef4444; color: #fff; border: none; border-radius: 14px; padding: 15px; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(239,68,68,0.4); z-index: 20; }
+    
+    .fab { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 440px; border: none; border-radius: 14px; padding: 15px; font-size: 1rem; font-weight: 700; cursor: pointer; z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+    .fab-owe { background: #ef4444; color: #fff; box-shadow: 0 8px 24px rgba(239,68,68,0.35); }
+    .fab-owed { background: #10b981; color: #fff; box-shadow: 0 8px 24px rgba(16,185,129,0.35); }
+    
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; justify-content: center; align-items: flex-end; }
     .modal-overlay.active { display: flex; }
     .modal-sheet { background: #111827; width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 20px 16px 36px 16px; border-top: 1px solid #374151; }
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 0.8rem; color: #9ca3af; margin-bottom: 6px; }
     .form-group input, .form-group select { width: 100%; padding: 12px; border-radius: 10px; background: #1f2937; border: 1px solid #374151; color: #fff; font-size: 1rem; }
-    .btn-submit { width: 100%; padding: 14px; background: #ef4444; color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .btn-submit { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px; }
     .empty-state { text-align: center; padding: 40px 16px; color: #6b7280; font-size: 0.95rem; }
   </style>
 </head>
@@ -54,28 +77,57 @@
   </header>
 
   <div class="container">
-    <div class="stats-card">
-      <div class="stats-label">Total Money I Owe</div>
-      <div class="stats-amount" id="totalOwedDisplay">$0</div>
-      <div class="stats-secondary" id="secondaryTotalDisplay">0 د.ع remaining</div>
+    <!-- View Switcher -->
+    <div class="nav-tabs">
+      <button id="tabOwe" class="tab-btn active-owe" onclick="switchTab('owe')">I Owe (Pay)</button>
+      <button id="tabOwed" class="tab-btn" onclick="switchTab('owed')">They Owe Me (Collect)</button>
     </div>
 
+    <!-- Summary Box -->
+    <div class="stats-card">
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-label">I Need To Pay</div>
+          <div class="stat-num-owe" id="sumOweDisplay">$0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">I Need To Collect</div>
+          <div class="stat-num-owed" id="sumOwedDisplay">$0</div>
+        </div>
+      </div>
+      <div class="net-box">
+        <span>Net Balance (Receivables - Debts):</span>
+        <span class="net-val" id="netDisplay">$0</span>
+      </div>
+    </div>
+
+    <!-- Entries List -->
     <div id="debtsList"></div>
   </div>
 
-  <button class="fab" onclick="openAddModal()">+ Add New Debt</button>
+  <button id="fabBtn" class="fab fab-owe" onclick="openAddModal()">+ Add Money I Owe</button>
 
-  <!-- Add Modal -->
+  <!-- Add Record Modal -->
   <div class="modal-overlay" id="addModal">
     <div class="modal-sheet">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="font-size: 1.1rem; color: #fff;">Record Money You Owe</h2>
+        <h2 id="modalTitle" style="font-size: 1.1rem; color: #fff;">Record Money</h2>
         <button onclick="closeModal('addModal')" style="background:none; border:none; color:#9ca3af; font-size: 1.5rem;">✕</button>
       </div>
+      
       <div class="form-group">
-        <label>Who did you borrow from?</label>
-        <input type="text" id="creditorName" placeholder="e.g. Ahmed, Shop, Bank" />
+        <label>Type of Record</label>
+        <select id="recordType" onchange="updateModalTypeLabels()">
+          <option value="owe">I borrowed money (I Owe)</option>
+          <option value="owed">I lent money (They Owe Me)</option>
+        </select>
       </div>
+
+      <div class="form-group">
+        <label id="personNameLabel">Person's Name</label>
+        <input type="text" id="personName" placeholder="e.g. Ahmed, Karwan, Hardware Store" />
+      </div>
+
       <div class="form-group">
         <label>Currency</label>
         <select id="debtCurrency">
@@ -83,40 +135,70 @@
           <option value="IQD">IQD (د.ع)</option>
         </select>
       </div>
+
       <div class="form-group">
-        <label>Total Amount Borrowed</label>
+        <label>Total Amount</label>
         <input type="number" id="debtAmount" placeholder="e.g. 500" />
       </div>
+
       <div class="form-group">
         <label>Note / Purpose (Optional)</label>
-        <input type="text" id="debtNote" placeholder="e.g. Car repair, Loan" />
+        <input type="text" id="debtNote" placeholder="e.g. Invoices, Personal loan, Car parts" />
       </div>
-      <button class="btn-submit" onclick="saveNewDebt()">Save Debt</button>
+
+      <button id="btnSubmitAdd" class="btn-submit" style="background:#ef4444; color:#fff;" onclick="saveRecord()">Save Entry</button>
     </div>
   </div>
 
-  <!-- Repay Modal -->
-  <div class="modal-overlay" id="repayModal">
+  <!-- Repay/Collect Modal -->
+  <div class="modal-overlay" id="actionModal">
     <div class="modal-sheet">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="font-size: 1.1rem; color: #fff;">Record a Payment</h2>
-        <button onclick="closeModal('repayModal')" style="background:none; border:none; color:#9ca3af; font-size: 1.5rem;">✕</button>
+        <h2 id="actionModalTitle" style="font-size: 1.1rem; color: #fff;">Record Payment</h2>
+        <button onclick="closeModal('actionModal')" style="background:none; border:none; color:#9ca3af; font-size: 1.5rem;">✕</button>
       </div>
-      <input type="hidden" id="repayDebtId" />
+      <input type="hidden" id="actionEntryId" />
       <div class="form-group">
-        <label id="repayPromptText">Amount to pay</label>
-        <input type="number" id="repayAmount" placeholder="Enter amount" />
+        <label id="actionPromptText">Amount</label>
+        <input type="number" id="actionAmount" placeholder="Enter amount" />
       </div>
-      <button class="btn-submit" style="background: #10b981;" onclick="submitPayment()">Confirm Payment</button>
+      <button id="actionConfirmBtn" class="btn-submit" style="background: #10b981; color:#fff;" onclick="submitPayment()">Confirm</button>
     </div>
   </div>
 
   <script>
-    let debts = JSON.parse(localStorage.getItem('my_debts_v1')) || [];
+    let records = JSON.parse(localStorage.getItem('owepay_records_v2')) || [];
     let currentCurrency = 'USD';
+    let currentTab = 'owe'; // 'owe' or 'owed'
+
+    // Migration helper from v1 if exists
+    const oldV1 = localStorage.getItem('my_debts_v1');
+    if (oldV1 && records.length === 0) {
+      try {
+        const parsed = JSON.parse(oldV1);
+        records = parsed.map(x => ({ ...x, type: 'owe' }));
+        localStorage.setItem('owepay_records_v2', JSON.stringify(records));
+      } catch(e) {}
+    }
 
     function saveState() {
-      localStorage.setItem('my_debts_v1', JSON.stringify(debts));
+      localStorage.setItem('owepay_records_v2', JSON.stringify(records));
+      render();
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tabOwe').className = 'tab-btn' + (tab === 'owe' ? ' active-owe' : '');
+      document.getElementById('tabOwed').className = 'tab-btn' + (tab === 'owed' ? ' active-owed' : '');
+      
+      const fab = document.getElementById('fabBtn');
+      if (tab === 'owe') {
+        fab.className = 'fab fab-owe';
+        fab.innerText = '+ Add Money I Owe';
+      } else {
+        fab.className = 'fab fab-owed';
+        fab.innerText = '+ Add Money Owed To Me';
+      }
       render();
     }
 
@@ -128,27 +210,63 @@
     }
 
     function openAddModal() {
-      document.getElementById('creditorName').value = '';
+      document.getElementById('recordType').value = currentTab;
+      updateModalTypeLabels();
+      document.getElementById('personName').value = '';
       document.getElementById('debtAmount').value = '';
       document.getElementById('debtNote').value = '';
       document.getElementById('addModal').classList.add('active');
     }
 
-    function openRepayModal(id) {
-      const d = debts.find(x => x.id === id);
-      if (!d) return;
-      document.getElementById('repayDebtId').value = id;
-      document.getElementById('repayPromptText').innerText = 'Pay back to ' + d.name + ' (' + (d.amount - d.paid) + ' ' + d.currency + ' left)';
-      document.getElementById('repayAmount').value = (d.amount - d.paid);
-      document.getElementById('repayModal').classList.add('active');
+    function updateModalTypeLabels() {
+      const type = document.getElementById('recordType').value;
+      const title = document.getElementById('modalTitle');
+      const label = document.getElementById('personNameLabel');
+      const submit = document.getElementById('btnSubmitAdd');
+
+      if (type === 'owe') {
+        title.innerText = 'Record Money You Owe';
+        label.innerText = 'Who did you borrow from?';
+        submit.style.background = '#ef4444';
+        submit.innerText = 'Save Debt';
+      } else {
+        title.innerText = 'Record Money Owed To You';
+        label.innerText = 'Who borrowed from you?';
+        submit.style.background = '#10b981';
+        submit.innerText = 'Save Receivable';
+      }
+    }
+
+    function openActionModal(id) {
+      const item = records.find(x => x.id === id);
+      if (!item) return;
+      document.getElementById('actionEntryId').value = id;
+      const left = Math.max(0, item.amount - (item.paid || 0));
+      const sym = item.currency === 'USD' ? '$' : ' د.ع';
+
+      if (item.type === 'owe') {
+        document.getElementById('actionModalTitle').innerText = 'Pay Back to ' + item.name;
+        document.getElementById('actionPromptText').innerText = 'Amount to pay (' + left.toLocaleString() + sym + ' left)';
+        document.getElementById('actionConfirmBtn').style.background = '#ef4444';
+        document.getElementById('actionConfirmBtn').innerText = 'Confirm Pay Back';
+      } else {
+        document.getElementById('actionModalTitle').innerText = 'Collect from ' + item.name;
+        document.getElementById('actionPromptText').innerText = 'Amount collected (' + left.toLocaleString() + sym + ' left)';
+        document.getElementById('actionConfirmBtn').style.background = '#10b981';
+        document.getElementById('actionConfirmBtn').innerText = 'Confirm Collected';
+      }
+
+      document.getElementById('actionAmount').value = left;
+      document.getElementById('actionModal').classList.add('active');
     }
 
     function closeModal(id) {
       document.getElementById(id).classList.remove('active');
     }
 
-    function saveNewDebt() {
-      const name = document.getElementById('creditorName').value.trim();
+    function saveRecord() {
+      const type = document.getElementById('recordType').value;
+      const name = document.getElementById('personName').value.trim();
       const amount = parseFloat(document.getElementById('debtAmount').value);
       const currency = document.getElementById('debtCurrency').value;
       const note = document.getElementById('debtNote').value.trim();
@@ -158,68 +276,114 @@
         return;
       }
 
-      debts.push({ id: Date.now().toString(), name, amount, paid: 0, currency, note, date: new Date().toLocaleDateString() });
+      records.push({
+        id: Date.now().toString(),
+        type: type,
+        name: name,
+        amount: amount,
+        paid: 0,
+        currency: currency,
+        note: note,
+        date: new Date().toLocaleDateString()
+      });
+
       closeModal('addModal');
       saveState();
     }
 
     function submitPayment() {
-      const id = document.getElementById('repayDebtId').value;
-      const payVal = parseFloat(document.getElementById('repayAmount').value);
-      const d = debts.find(x => x.id === id);
-      if (!d || isNaN(payVal) || payVal <= 0) return;
+      const id = document.getElementById('actionEntryId').value;
+      const payVal = parseFloat(document.getElementById('actionAmount').value);
+      const item = records.find(x => x.id === id);
+      if (!item || isNaN(payVal) || payVal <= 0) return;
 
-      d.paid = Math.min(d.amount, (d.paid || 0) + payVal);
-      closeModal('repayModal');
+      item.paid = Math.min(item.amount, (item.paid || 0) + payVal);
+      closeModal('actionModal');
       saveState();
     }
 
-    function deleteDebt(id) {
+    function deleteRecord(id) {
       if (confirm('Delete this record?')) {
-        debts = debts.filter(x => x.id !== id);
+        records = records.filter(x => x.id !== id);
         saveState();
       }
     }
 
     function render() {
-      let totalUsd = 0;
-      let totalIqd = 0;
+      let oweUSD = 0, oweIQD = 0;
+      let owedUSD = 0, owedIQD = 0;
 
-      debts.forEach(d => {
-        const remaining = Math.max(0, d.amount - (d.paid || 0));
-        if (d.currency === 'USD') totalUsd += remaining;
-        else totalIqd += remaining;
+      records.forEach(r => {
+        const remaining = Math.max(0, r.amount - (r.paid || 0));
+        if (r.type === 'owe') {
+          if (r.currency === 'USD') oweUSD += remaining;
+          else oweIQD += remaining;
+        } else {
+          if (r.currency === 'USD') owedUSD += remaining;
+          else owedIQD += remaining;
+        }
       });
 
-      const primary = currentCurrency === 'USD' ? '$' + totalUsd.toLocaleString() : totalIqd.toLocaleString() + ' د.ع';
-      const secondary = currentCurrency === 'USD' ? totalIqd.toLocaleString() + ' د.ع remaining' : '$' + totalUsd.toLocaleString() + ' remaining';
+      // Update Summary Cards
+      const sym = currentCurrency === 'USD' ? '$' : ' د.ع';
+      const curOwe = currentCurrency === 'USD' ? oweUSD : oweIQD;
+      const curOwed = currentCurrency === 'USD' ? owedUSD : owedIQD;
+      const net = curOwed - curOwe;
 
-      document.getElementById('totalOwedDisplay').innerText = primary;
-      document.getElementById('secondaryTotalDisplay').innerText = secondary;
+      document.getElementById('sumOweDisplay').innerText = currentCurrency === 'USD' ? '$' + curOwe.toLocaleString() : curOwe.toLocaleString() + ' د.ع';
+      document.getElementById('sumOwedDisplay').innerText = currentCurrency === 'USD' ? '$' + curOwed.toLocaleString() : curOwed.toLocaleString() + ' د.ع';
 
+      const netEl = document.getElementById('netDisplay');
+      if (net > 0) {
+        netEl.innerText = '+' + (currentCurrency === 'USD' ? '$' + net.toLocaleString() : net.toLocaleString() + ' د.ع');
+        netEl.style.color = '#10b981';
+      } else if (net < 0) {
+        netEl.innerText = '-' + (currentCurrency === 'USD' ? '$' + Math.abs(net).toLocaleString() : Math.abs(net).toLocaleString() + ' د.ع');
+        netEl.style.color = '#ef4444';
+      } else {
+        netEl.innerText = (currentCurrency === 'USD' ? '$0' : '0 د.ع');
+        netEl.style.color = '#9ca3af';
+      }
+
+      // Filter by Active Tab
+      const filtered = records.filter(r => (r.type || 'owe') === currentTab);
       const list = document.getElementById('debtsList');
-      if (debts.length === 0) {
-        list.innerHTML = '<div class="empty-state">No debts recorded yet.<br>Tap the red button below to add your first one.</div>';
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty-state">No records in "${currentTab === 'owe' ? 'I Owe' : 'They Owe Me'}".<br>Tap the button below to add one.</div>`;
         return;
       }
 
-      list.innerHTML = debts.map(d => {
-        const remaining = Math.max(0, d.amount - (d.paid || 0));
+      list.innerHTML = filtered.map(item => {
+        const remaining = Math.max(0, item.amount - (item.paid || 0));
         const isSettled = remaining === 0;
-        const sym = d.currency === 'USD' ? '$' : ' د.ع';
+        const itemSym = item.currency === 'USD' ? '$' : ' د.ع';
+        const isOwe = item.type === 'owe';
+
         return `
           <div class="debt-item ${isSettled ? 'settled' : ''}">
             <div class="debt-header">
               <div>
-                <div class="debt-name">${d.name}</div>
-                ${d.note ? `<div class="debt-note">${d.note}</div>` : ''}
+                <div class="debt-name">${item.name}</div>
+                ${item.note ? `<div class="debt-note">${item.note}</div>` : ''}
               </div>
-              <span class="debt-badge ${isSettled ? 'badge-settled' : 'badge-pending'}">${isSettled ? 'Paid Off' : 'Pending'}</span>
+              <span class="debt-badge ${isSettled ? 'badge-settled' : (isOwe ? 'badge-owe' : 'badge-owed')}">
+                ${isSettled ? 'Settled' : (isOwe ? 'Pending Pay' : 'Pending Collect')}
+              </span>
             </div>
-            <div class="debt-balance">${remaining.toLocaleString()}${sym} <span style="font-size:0.8rem; color:#9ca3af; font-weight:normal;">/ borrowed ${d.amount.toLocaleString()}${sym}</span></div>
+            
+            <div class="debt-balance ${isOwe ? 'bal-owe' : 'bal-owed'}">
+              ${remaining.toLocaleString()}${itemSym}
+              <span style="font-size:0.8rem; color:#9ca3af; font-weight:normal;"> / total ${item.amount.toLocaleString()}${itemSym}</span>
+            </div>
+
             <div class="actions">
-              ${!isSettled ? `<button class="btn btn-pay" onclick="openRepayModal('${d.id}')">Pay Back</button>` : ''}
-              <button class="btn btn-del" onclick="deleteDebt('${d.id}')">🗑</button>
+              ${!isSettled ? `
+                <button class="btn ${isOwe ? 'btn-pay' : 'btn-collect'}" onclick="openActionModal('${item.id}')">
+                  ${isOwe ? 'Pay Back' : 'Collect Money'}
+                </button>
+              ` : ''}
+              <button class="btn btn-del" onclick="deleteRecord('${item.id}')">🗑</button>
             </div>
           </div>
         `;
