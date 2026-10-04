@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>OwePay - Debt Tracker</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="OwePay" />
+  <meta name="theme-color" content="#0b0f19" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background-color: #0b0f19; color: #f3f4f6; min-height: 100vh; padding-bottom: 90px; }
+    header { background: #111827; padding: 18px 16px; border-bottom: 1px solid #1f2937; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
+    h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .currency-btn { background: #1f2937; color: #9ca3af; border: 1px solid #374151; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .currency-btn.active { background: #ef4444; color: #fff; border-color: #ef4444; }
+    .container { padding: 16px; max-width: 480px; margin: 0 auto; }
+    .stats-card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 18px; margin-bottom: 18px; }
+    .stats-label { color: #9ca3af; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .stats-amount { font-size: 2rem; font-weight: 800; color: #ef4444; margin-bottom: 8px; }
+    .stats-secondary { color: #9ca3af; font-size: 0.85rem; }
+    .debt-item { background: #111827; border: 1px solid #1f2937; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+    .debt-item.settled { border-color: #059669; opacity: 0.75; }
+    .debt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .debt-name { font-size: 1rem; font-weight: 700; color: #fff; }
+    .debt-note { font-size: 0.8rem; color: #9ca3af; margin-top: 2px; }
+    .debt-badge { padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; }
+    .badge-pending { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .badge-settled { background: rgba(16,185,129,0.15); color: #10b981; }
+    .debt-balance { font-size: 1.25rem; font-weight: 700; color: #fff; margin: 6px 0; }
+    .actions { display: flex; gap: 8px; margin-top: 12px; }
+    button.btn { flex: 1; padding: 9px; border-radius: 10px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .btn-pay { background: #10b981; color: #fff; }
+    .btn-del { background: #1f2937; color: #ef4444; border: 1px solid #374151 !important; flex: 0 0 44px; }
+    .fab { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 440px; background: #ef4444; color: #fff; border: none; border-radius: 14px; padding: 15px; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(239,68,68,0.4); z-index: 20; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; justify-content: center; align-items: flex-end; }
+    .modal-overlay.active { display: flex; }
+    .modal-sheet { background: #111827; width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 20px 16px 36px 16px; border-top: 1px solid #374151; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.8rem; color: #9ca3af; margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border-radius: 10px; background: #1f2937; border: 1px solid #374151; color: #fff; font-size: 1rem; }
+    .btn-submit { width: 100%; padding: 14px; background: #ef4444; color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .empty-state { text-align: center; padding: 40px 16px; color: #6b7280; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>💸 OwePay</h1>
+    <div style="display: flex; gap: 6px;">
+      <button id="currUsd" class="currency-btn active" onclick="setCurrency('USD')">USD ($)</button>
+      <button id="currIqd" class="currency-btn" onclick="setCurrency('IQD')">IQD (د.ع)</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="stats-card">
+      <div class="stats-label">Total Money I Owe</div>
+      <div class="stats-amount" id="totalOwedDisplay">$0</div>
+      <div class="stats-secondary" id="secondaryTotalDisplay">0 د.ع remaining</div>
+    </div>
+
+    <div id="debtsList"></div>
+  </div>
+
+  <button class="fab" onclick="openAddModal()">+ Add New Debt</button>
+
+  <!-- Add Modal -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal-sheet">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 1.1rem; color: #fff;">Record Money You Owe</h2>
+        <button onclick="closeModal('addModal')" style="background:none; border:none; color:#9ca3af; font-size: 1.5rem;">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Who did you borrow from?</label>
+        <input type="text" id="creditorName" placeholder="e.g. Ahmed, Shop, Bank" />
+      </div>
+      <div class="form-group">
+        <label>Currency</label>
+        <select id="debtCurrency">
+          <option value="USD">USD ($)</option>
+          <option value="IQD">IQD (د.ع)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Total Amount Borrowed</label>
+        <input type="number" id="debtAmount" placeholder="e.g. 500" />
+      </div>
+      <div class="form-group">
+        <label>Note / Purpose (Optional)</label>
+        <input type="text" id="debtNote" placeholder="e.g. Car repair, Loan" />
+      </div>
+      <button class="btn-submit" onclick="saveNewDebt()">Save Debt</button>
+    </div>
+  </div>
+
+  <!-- Repay Modal -->
+  <div class="modal-overlay" id="repayModal">
+    <div class="modal-sheet">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 1.1rem; color: #fff;">Record a Payment</h2>
+        <button onclick="closeModal('repayModal')" style="background:none; border:none; color:#9ca3af; font-size: 1.5rem;">✕</button>
+      </div>
+      <input type="hidden" id="repayDebtId" />
+      <div class="form-group">
+        <label id="repayPromptText">Amount to pay</label>
+        <input type="number" id="repayAmount" placeholder="Enter amount" />
+      </div>
+      <button class="btn-submit" style="background: #10b981;" onclick="submitPayment()">Confirm Payment</button>
+    </div>
+  </div>
+
+  <script>
+    let debts = JSON.parse(localStorage.getItem('my_debts_v1')) || [];
+    let currentCurrency = 'USD';
+
+    function saveState() {
+      localStorage.setItem('my_debts_v1', JSON.stringify(debts));
+      render();
+    }
+
+    function setCurrency(curr) {
+      currentCurrency = curr;
+      document.getElementById('currUsd').className = 'currency-btn' + (curr === 'USD' ? ' active' : '');
+      document.getElementById('currIqd').className = 'currency-btn' + (curr === 'IQD' ? ' active' : '');
+      render();
+    }
+
+    function openAddModal() {
+      document.getElementById('creditorName').value = '';
+      document.getElementById('debtAmount').value = '';
+      document.getElementById('debtNote').value = '';
+      document.getElementById('addModal').classList.add('active');
+    }
+
+    function openRepayModal(id) {
+      const d = debts.find(x => x.id === id);
+      if (!d) return;
+      document.getElementById('repayDebtId').value = id;
+      document.getElementById('repayPromptText').innerText = 'Pay back to ' + d.name + ' (' + (d.amount - d.paid) + ' ' + d.currency + ' left)';
+      document.getElementById('repayAmount').value = (d.amount - d.paid);
+      document.getElementById('repayModal').classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function saveNewDebt() {
+      const name = document.getElementById('creditorName').value.trim();
+      const amount = parseFloat(document.getElementById('debtAmount').value);
+      const currency = document.getElementById('debtCurrency').value;
+      const note = document.getElementById('debtNote').value.trim();
+
+      if (!name || isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid name and amount.');
+        return;
+      }
+
+      debts.push({ id: Date.now().toString(), name, amount, paid: 0, currency, note, date: new Date().toLocaleDateString() });
+      closeModal('addModal');
+      saveState();
+    }
+
+    function submitPayment() {
+      const id = document.getElementById('repayDebtId').value;
+      const payVal = parseFloat(document.getElementById('repayAmount').value);
+      const d = debts.find(x => x.id === id);
+      if (!d || isNaN(payVal) || payVal <= 0) return;
+
+      d.paid = Math.min(d.amount, (d.paid || 0) + payVal);
+      closeModal('repayModal');
+      saveState();
+    }
+
+    function deleteDebt(id) {
+      if (confirm('Delete this record?')) {
+        debts = debts.filter(x => x.id !== id);
+        saveState();
+      }
+    }
+
+    function render() {
+      let totalUsd = 0;
+      let totalIqd = 0;
+
+      debts.forEach(d => {
+        const remaining = Math.max(0, d.amount - (d.paid || 0));
+        if (d.currency === 'USD') totalUsd += remaining;
+        else totalIqd += remaining;
+      });
+
+      const primary = currentCurrency === 'USD' ? '$' + totalUsd.toLocaleString() : totalIqd.toLocaleString() + ' د.ع';
+      const secondary = currentCurrency === 'USD' ? totalIqd.toLocaleString() + ' د.ع remaining' : '$' + totalUsd.toLocaleString() + ' remaining';
+
+      document.getElementById('totalOwedDisplay').innerText = primary;
+      document.getElementById('secondaryTotalDisplay').innerText = secondary;
+
+      const list = document.getElementById('debtsList');
+      if (debts.length === 0) {
+        list.innerHTML = '<div class="empty-state">No debts recorded yet.<br>Tap the red button below to add your first one.</div>';
+        return;
+      }
+
+      list.innerHTML = debts.map(d => {
+        const remaining = Math.max(0, d.amount - (d.paid || 0));
+        const isSettled = remaining === 0;
+        const sym = d.currency === 'USD' ? '$' : ' د.ع';
+        return `
+          <div class="debt-item ${isSettled ? 'settled' : ''}">
+            <div class="debt-header">
+              <div>
+                <div class="debt-name">${d.name}</div>
+                ${d.note ? `<div class="debt-note">${d.note}</div>` : ''}
+              </div>
+              <span class="debt-badge ${isSettled ? 'badge-settled' : 'badge-pending'}">${isSettled ? 'Paid Off' : 'Pending'}</span>
+            </div>
+            <div class="debt-balance">${remaining.toLocaleString()}${sym} <span style="font-size:0.8rem; color:#9ca3af; font-weight:normal;">/ borrowed ${d.amount.toLocaleString()}${sym}</span></div>
+            <div class="actions">
+              ${!isSettled ? `<button class="btn btn-pay" onclick="openRepayModal('${d.id}')">Pay Back</button>` : ''}
+              <button class="btn btn-del" onclick="deleteDebt('${d.id}')">🗑</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    render();
+  </script>
+</body>
+</html>
